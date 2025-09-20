@@ -19,7 +19,7 @@ export default function TeamPage() {
           fontWeight: 900,
         }}
       >
-        <span className={css['text-yellow']}>Our</span>Team
+        <span className={css['text-yellow']}>Our Team</span>
       </Typography>
       <Loader isLoading={isLoading}>
         <CardList cards={cards} CardComponent={TeamMemberCard} />
