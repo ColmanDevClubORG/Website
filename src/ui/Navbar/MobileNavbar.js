@@ -44,13 +44,17 @@ const MobileNavbar = () => {
         open={Boolean(anchorElNav)}
         onClose={handleCloseNavMenu}
       >
-        {pages.map((page) => (
-          <NavLink key={page.title} to={page.path} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <MenuItem onClick={handleCloseNavMenu}>
-              <Typography textAlign="center">{page.title}</Typography>
-            </MenuItem>
-          </NavLink>
-        ))}
+ {pages.map((page) => (
+   <MenuItem
+     key={page.title}
+     component={NavLink}
+     to={page.path}
+     onClick={handleCloseNavMenu}
+     sx={{ textDecoration: 'none', color: 'inherit' }}
+   >
+     <Typography textAlign="center">{page.title}</Typography>
+   </MenuItem>
+ ))}
         {user && (
           <MenuItem
             onClick={() => {
@@ -62,20 +66,26 @@ const MobileNavbar = () => {
           </MenuItem>
         )}
 
-        {!user && (
-          <>
-            <NavLink to="/signin" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <MenuItem onClick={handleCloseNavMenu}>
-                <Typography textAlign="center">Sign In</Typography>
-              </MenuItem>
-            </NavLink>
-            <NavLink to="/signup" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <MenuItem onClick={handleCloseNavMenu}>
-                <Typography textAlign="center">Join Us</Typography>
-              </MenuItem>
-            </NavLink>
-          </>
-        )}
+ {!user && [
+   <MenuItem
+     key="signin"
+     component={NavLink}
+     to="/signin"
+     onClick={handleCloseNavMenu}
+     sx={{ textDecoration: 'none', color: 'inherit' }}
+   >
+     <Typography textAlign="center">Sign In</Typography>
+   </MenuItem>,
+   <MenuItem
+     key="signup"
+     component={NavLink}
+     to="/signup"
+     onClick={handleCloseNavMenu}
+     sx={{ textDecoration: 'none', color: 'inherit' }}
+   >
+     <Typography textAlign="center">Join Us</Typography>
+   </MenuItem>,
+ ]}
       </Menu>
       <LogoAndTitle />
     </Toolbar>

@@ -8,7 +8,8 @@ import { Footer } from './components';
 import { SignInPage, SignUpPage } from '../auth/pages';
 import { AuthContextProvider } from '../auth/authContext';
 // import ProtectedRoute from 'src/utils/protectedRoutes';
-
+import TryoutRegistrationPage from './pages/TryoutRegistration/TryoutRegistration';
+import TryoutSuccess from './pages/TryoutRegistration/TryoutSuccess';
 
 const LandingRouter = () => {
   return (
@@ -23,6 +24,8 @@ const LandingRouter = () => {
           <Route path="/syllabus" element={<SyllabusPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/signin" element={<SignInPage />} />
+          <Route path="/tryout" element={<TryoutRegistrationPage />} />
+          <Route path="/tryout/success" element={<TryoutSuccess />} />
         </Routes>
         <Footer />
       </AuthContextProvider>

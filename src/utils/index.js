@@ -1,5 +1,6 @@
-import { fetchData } from 'src/hooks/useFirestoreFetch';
 import validator from 'validator';
+import { fetchData } from 'src/hooks/useFirestoreFetch';
+
 
 const emailValidation = (email) => {
   if (typeof email !== 'string') return false;
@@ -24,10 +25,8 @@ const experienceValidation = (name) => {
 };
 
 const checkEnglishName = (name) => {
-  if (name.match(/^[a-zA-Z ]+$/)) {
-    return name;
-  }
-  return "";
+  if (typeof name !== 'string') return '';
+  return /^[a-zA-Z ]+$/.test(name) ? name : '';
 };
 
 const numberValidation = (number) => {
@@ -39,38 +38,85 @@ const numberValidation = (number) => {
 };
 
 const idValidation = (idNumber) => {
-  if (typeof idNumber !== 'string') {
-    return false;
-  }
+  if (typeof idNumber !== 'string') return false;
 
   idNumber = idNumber.replace(/\D/g, '');
-
-  if (idNumber.length !== 9) {
-    return false;
-  }
+  if (idNumber.length !== 9) return false;
 
   const idDigits = idNumber.split('').map(Number);
   const controlDigit = idDigits.pop();
-  const sum = idDigits.reduce(function (acc, digit, index) {
+  const sum = idDigits.reduce((acc, digit, index) => {
     const weight = index % 2 === 0 ? 1 : 2;
     const value = digit * weight;
     return acc + (value > 9 ? value - 9 : value);
   }, 0);
 
   const calculatedControlDigit = (10 - (sum % 10)) % 10;
-
   return controlDigit === calculatedControlDigit;
 };
 
 const passwordValidation = (password) => {
-  if (password.length < 6) return false;
-  return true;
+  if (typeof password !== 'string') return false;
+  return password.trim().length >= 6;
 };
 
 const selectionValidation = (selectValue) => {
   if (typeof selectValue !== 'string') return false;
-  return !(validator.isEmpty(selectValue));
+  return !validator.isEmpty(selectValue);
 };
+
+
+export function normalizeEmail(raw) {
+  return String(raw || '').trim().toLowerCase();
+}
+
+export function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email));
+}
+
+export function isValidPhoneIL(phone) {
+  return /^\d{9,10}$/.test(String(phone));
+}
+
+export function validateTryoutForm(form) {
+  const fullName = String(form.fullName || '').trim();
+  const email = normalizeEmail(form.email);
+  const phoneNumber = String(form.phoneNumber || '').trim();
+  const preferredDate = String(form.preferredDate || '').trim();
+  const experience = String(form.experience || '').trim();
+  const experienceDetails = String(form.experienceDetails || '').trim();
+  const fieldOfStudy = String(form.fieldOfStudy || '').trim();
+  const schoolYear = String(form.schoolYear || '').trim();
+
+  const errors = [];
+
+  if (!fullName) errors.push('שם מלא הוא שדה חובה');
+  if (!email) errors.push('אימייל הוא שדה חובה');
+  if (!phoneNumber) errors.push('טלפון הוא שדה חובה');
+  if (!preferredDate) errors.push('תאריך מועדף הוא שדה חובה');
+  if (!experience) errors.push('שדה ניסיון הוא חובה');
+  if (!fieldOfStudy) errors.push('שדה תחום לימוד הוא חובה');
+  if (!schoolYear) errors.push('שדה שנת לימוד הוא חובה');
+
+  if (experience === 'כן' && !experienceDetails) errors.push('נא לפרט ניסיון');
+  if (email && !isValidEmail(email)) errors.push('פורמט אימייל לא תקין');
+  if (phoneNumber && !isValidPhoneIL(phoneNumber)) errors.push('מספר טלפון לא תקין');
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    normalized: {
+      fullName,
+      email,
+      phoneNumber,
+      preferredDate,
+      experience,
+      experienceDetails,
+      fieldOfStudy,
+      schoolYear,
+    },
+  };
+}
 
 export const fetchAllUsers = async () => {
   const users = await fetchData('users');
@@ -114,10 +160,10 @@ export const sendDataToAgudaForm = async (
   formData.append('Ext3', Ext3);
   formData.append('Ext4', Ext4);
   formData.append('Ext5', Ext5);
-  formData.append('FirstName', fullName.split(' ')[0]);
-  formData.append('LastName', fullName.split(' ')[1]);
-  formData.append('Phone1', phoneNumber);
-  formData.append('Email', email);
+  formData.append('FirstName', String(fullName || '').split(' ')[0] || '');
+  formData.append('LastName', String(fullName || '').split(' ')[1] || '');
+  formData.append('Phone1', phoneNumber || '');
+  formData.append('Email', email || '');
 
   // const response = await axios.post('https://webapi.mymarketing.co.il/Customers/LeadHandler.ashx', formData, {
   //   headers: {
@@ -143,4 +189,14 @@ export const sendDataToAgudaForm = async (
   // });
 };
 
-export { emailValidation, stringValidation, experienceValidation, numberValidation, selectionValidation, idValidation, passwordValidation, checkEnglishName };
+
+export {
+  emailValidation,
+  stringValidation,
+  experienceValidation,
+  numberValidation,
+  selectionValidation,
+  idValidation,
+  passwordValidation,
+  checkEnglishName,
+};
