@@ -1,13 +1,13 @@
 import * as React from 'react';
 
-import { LinkedIn as LinkedInIcon } from '@mui/icons-material';
+import { GitHub as GitHubIcon, LinkedIn as LinkedInIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 import { Avatar, IconButton, Stack, Typography } from '@mui/material';
 import { TeamMemberCardContainer } from './TeamMemberCard.style';
 import { checkImagePermission } from './utils';
 
-const TeamMemberCard = ({ profileImage, name, about, linkedin }) => {
+const TeamMemberCard = ({ profileImage, name, about, linkedin, gitHub }) => {
   const [isImgLoaded, setIsImgLoaded] = React.useState(false);
   const [isValide, setIsValide] = React.useState(false);
 
@@ -56,9 +56,21 @@ const TeamMemberCard = ({ profileImage, name, about, linkedin }) => {
         >
           {about}
         </Typography>
+      </Stack>
+      <Stack
+        direction="row"
+        justifyContent="center"
+        spacing={2}
+        paddingBottom={2}
+      >
         <Link to={linkedin} target="_blank">
           <IconButton>
             <LinkedInIcon fontSize="large" color="primary" />
+          </IconButton>
+        </Link>
+        <Link to={gitHub} target="_blank">
+          <IconButton>
+            <GitHubIcon fontSize="large" color="primary" />
           </IconButton>
         </Link>
       </Stack>
