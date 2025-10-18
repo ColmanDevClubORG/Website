@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { Box, Checkbox, Container, Grid, Typography } from '@mui/material';
 import css from './style.module.css';
 import FormInputField from 'src/ui/FormInputField';
@@ -10,6 +10,10 @@ import { ArrowButton, TransitionsModal } from 'src/ui';
 import SignUpMethod from './components/SignUpMethod';
 import Avatar from '@mui/material/Avatar';
 import { useCreateUser } from 'src/hooks/firebase.hooks';
+
+// ✅ ייבוא ישיר לבדיקה יעילה ב-Firestore
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { db } from 'src/config/firebase-config';
 
 const FIELDS_MAP = {
   TextField: FormInputField,
@@ -28,7 +32,10 @@ const SignUpPage = () => {
   const [email, setEmail] = React.useState('');
   const [name, setName] = React.useState('');
 
+  const createUser = useCreateUser();
+
   const onSignupHandler = async () => {
+    
     const validationState = labels.reduce((obj, { key, validator }) => {
       obj[key] = !validator(formValues[key]);
       return obj;
@@ -37,23 +44,46 @@ const SignUpPage = () => {
     setValidationErrors(validationState);
 
     if (Object.keys(validationState).length === 0) return;
+
     for (const key in validationState) {
+     
       if (key === 'experienceDetails' && formValues['experience'] !== 'כן') {
         validationState[key] = validationState['experience'];
       }
+      if (validationErrors[key]) return;
+    }
 
-      if (validationState[key]) {
+    if (!rules) return;
+
+    try {
+      const emailToCheck = String(formValues.email || '').trim().toLowerCase();
+      if (!emailToCheck) return; 
+
+      const q = query(
+        collection(db, 'users'),
+        where('email', '==', emailToCheck),
+        limit(1)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        alert('משתמש קיים במערכת');
+        navigate('/');
         return;
       }
-    }
-    if (!rules) return;
-    if ((await fetchData('users')).find((user) => user.formValues?.email === formValues['email'])) {
-      alert('משתמש קיים במערכת');
-      navigate('/');
+    } catch (e) {
+      console.error('[SignUpPage] email duplicate check failed:', e);
+      
       return;
     }
+
+    
     setOpenModal(true);
-    const newUser = { ...formValues, date: new Date().toLocaleDateString() };
+    const newUser = {
+      ...formValues,
+      email: String(formValues.email || '').trim().toLowerCase(),
+      date: new Date().toLocaleDateString(),
+      profilePic: profilePic || null,
+    };
     createUser.mutate(newUser);
   };
 
@@ -67,9 +97,7 @@ const SignUpPage = () => {
 
   const handleUploadClick = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      setProfilePic(file);
-    }
+    if (file) setProfilePic(file);
   };
 
   const goHome = () => {
@@ -81,11 +109,7 @@ const SignUpPage = () => {
     <EntranceAnimation>
       <Container
         maxWidth="md"
-        sx={{
-          paddingTop: '3rem',
-          paddingBottom: '3rem',
-
-        }}
+        sx={{ paddingTop: '3rem', paddingBottom: '3rem' }}
       >
         <Typography
           variant="h3"
@@ -96,198 +120,208 @@ const SignUpPage = () => {
             letterSpacing: '2px',
           }}
         >
-          <span className={css['text-yellow']}>Submit</span> Application
+          <span className={css['text-yellow']}>User</span> Registration
         </Typography>
+
+        
         <div className={css['container-signup']}>
-          {!methodClicked && <SignUpMethod setMethodClicked={setMethodClicked} setProfilePic={setProfilePic} setEmail={setEmail} setName={setName} setFormValues={setFormValues} />}
+          {!methodClicked && (
+            <SignUpMethod
+              setMethodClicked={setMethodClicked}
+              setProfilePic={setProfilePic}
+              setEmail={setEmail}
+              setName={setName}
+              setFormValues={setFormValues}
+            />
+          )}
         </div>
 
+       
         <div className={css['container']}>
-          {methodClicked && (<>
-            <Box
-              sx={{
-                backgroundColor: '#0a0a1b',
-                padding: {
-                  lg: '20px 80px 20px 80px'
-                },
-                borderRadius: '10px',
-                border: '1px solid #1F1F53',
-              }}
-            >
-              <Grid container
-                spacing={2}
-                direction="column"
-                alignItems="center"
-                justifyContent="center"
-                marginBottom={7}
-                marginTop={2}>
-                <Avatar sx={{ width: 150, height: 150, marginBottom: '15px', bgcolor: "grey" }} src={profilePic}>
-                </Avatar>
-                <Box
-                  component="label"
-                  sx={{
-                    backgroundColor: '#f6c927',
-                    borderRadius: '5px',
-                    width: 'fit-content',
-                    padding: '10px',
-                    color: 'black',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    boxShadow: '0px 0px 10px 0px #f6c927bd',
-                  }}
-                >
-                  Upload Image
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleUploadClick}
-                  />
-                </Box>
-              </Grid>
+          {methodClicked && (
+            <>
               <Box
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { sm: '1fr', md: '1fr 1fr' },
-                  gap: '1rem',
-                  marginBottom: '2rem',
+                  backgroundColor: '#0a0a1b',
+                  padding: { lg: '20px 80px 20px 80px' },
+                  borderRadius: '10px',
+                  border: '1px solid #1F1F53',
                 }}
               >
+                
+                <Grid
+                  container
+                  spacing={2}
+                  direction="column"
+                  alignItems="center"
+                  justifyContent="center"
+                  marginBottom={7}
+                  marginTop={2}
+                >
+                  <Avatar
+                    sx={{ width: 150, height: 150, marginBottom: '15px', bgcolor: 'grey' }}
+                    src={profilePic}
+                  />
+                  <Box
+                    component="label"
+                    sx={{
+                      backgroundColor: '#f6c927',
+                      borderRadius: '5px',
+                      width: 'fit-content',
+                      padding: '10px',
+                      color: 'black',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      boxShadow: '0px 0px 10px 0px #f6c927bd',
+                    }}
+                  >
+                    Upload Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleUploadClick}
+                    />
+                  </Box>
+                </Grid>
 
-                {labels.map(({ type, label, key, options, validator }, index) => {
-                  const FieldComponent = FIELDS_MAP[type];
-                  return label === 'Experience Details' && formValues['experience'] !== 'כן' ? null : (
-                    <EntranceAnimation key={index} animationDelay={label === 'Experience Details' ? 0 : index * 0.2}>
-                      <Box
-                        sx={{
-                          marginBottom: {
-                            xs: '0.75rem',
-                          },
-                        }}
+                
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { sm: '1fr', md: '1fr 1fr' },
+                    gap: '1rem',
+                    marginBottom: '2rem',
+                  }}
+                >
+                  {labels.map(({ type, label, key, options, validator }, index) => {
+                    const FieldComponent = FIELDS_MAP[type];
+                    if (label === 'Experience Details' && formValues['experience'] !== 'כן') {
+                      return null;
+                    }
+                    return (
+                      <EntranceAnimation
+                        key={index}
+                        animationDelay={label === 'Experience Details' ? 0 : index * 0.2}
                       >
-                        <FieldComponent
-                          type="text"
+                        <Box
                           sx={{
-                            width: {
-                              xs: '90%',
-                              lg: '100%',
-                            },
-                            alignSelf: 'center',
+                            marginBottom: { xs: '0.75rem' },
                           }}
-                          options={options}
-                          label={label}
-                          email={email}
-                          name={name}
-                          onChange={(event) => {
-                            setFormValues((prev) => {
-                              return { ...prev, [key]: event.target.value };
-                            });
-                            inputHandler(validator, key, event.target.value);
-                          }}
-                          error={validationErrors[key]}
-                        />
-                      </Box>
-                      <Typography
-                        sx={{
-                          textAlign: 'start',
-                          color: '#f44336',
-                        }}
-                      >
-                        {validationErrors[key] ? errorMessages[key] : ''}
-                      </Typography>
-                    </EntranceAnimation>
-                  );
-                })}
-              </Box>
-              <Grid container sx={{ display: 'flex', justifyContent: 'center' }}>
-                <Grid item xs={12} md={6}>
-                  <TransitionsModal
-                    openModal={openModal}
-                    setOpenModal={setOpenModal}
-                    title={'נרשמת בהצלחה'}
-                    closeOnOverlay={false}
-                    btnText="מעבר לדף הבית"
-                    btnOnClick={goHome}
-                  >
-                    <Typography
-                      variant="p"
-                      sx={{
-                        textAlign: 'center',
-                        marginBottom: '2rem',
-                      }}
-                    >
-                      מוזמנים להצטרף לקבוצת הוואטספ שלנו
-                    </Typography>
-                    <a
-                      style={{
-                        textDecoration: 'none',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        marginRight: '1rem',
-                      }}
-                      href="https://chat.whatsapp.com/BSs6DSDRUiW8UHe4ZfrABt"
-                    >
-                      לחץ כאן
-                    </a>
-                  </TransitionsModal>
+                        >
+                          <FieldComponent
+                            type={key === 'password' ? 'password' : 'text'}
+                            sx={{
+                              width: { xs: '90%', lg: '100%' },
+                              alignSelf: 'center',
+                            }}
+                            options={options}
+                            label={label}
+                            email={email}
+                            name={name}
+                            onChange={(event) => {
+                              setFormValues((prev) => ({ ...prev, [key]: event.target.value }));
+                              inputHandler(validator, key, event.target.value);
+                            }}
+                            error={validationErrors[key]}
+                          />
+                        </Box>
+                        <Typography sx={{ textAlign: 'start', color: '#f44336' }}>
+                          {validationErrors[key] ? errorMessages[key] : ''}
+                        </Typography>
+                      </EntranceAnimation>
+                    );
+                  })}
+                </Box>
 
-                  <TransitionsModal
-                    openModal={openRulesModal}
-                    setOpenModal={setOpenRulesModal}
-                    title={'תקנון'}
-                    closeOnOverlay={true}
-                    btnText="סגור"
-                    btnOnClick={() => setOpenRulesModal(false)}
-                  >
-                    <ul>
-                      {allRules.map((rule) => {
-                        return <li key={rule}>{rule}</li>;
-                      })}
-                    </ul>
+                {/* מודל הצלחה */}
+                <Grid container sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Grid item xs={12} md={6}>
+                    <TransitionsModal
+                      openModal={openModal}
+                      setOpenModal={setOpenModal}
+                      title={'נרשמת בהצלחה'}
+                      closeOnOverlay={false}
+                      btnText="מעבר לדף הבית"
+                      btnOnClick={goHome}
+                    >
+                      <Typography
+                        variant="p"
+                        sx={{ textAlign: 'center', marginBottom: '2rem' }}
+                      >
+                        מוזמנים להצטרף לקבוצת הוואטספ שלנו
+                      </Typography>
+                      <a
+                        style={{
+                          textDecoration: 'none',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          marginRight: '1rem',
+                        }}
+                        href="https://chat.whatsapp.com/IxoJVBqQtdaL952fxiduju?mode=wwt"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        לחץ כאן
+                      </a>
+                    </TransitionsModal>
+
+                    
+                    <TransitionsModal
+                      openModal={openRulesModal}
+                      setOpenModal={setOpenRulesModal}
+                      title={'תקנון'}
+                      closeOnOverlay={true}
+                      btnText="סגור"
+                      btnOnClick={() => setOpenRulesModal(false)}
+                    >
+                      <ul>
+                        {allRules.map((rule) => (
+                          <li key={rule}>{rule}</li>
+                        ))}
+                      </ul>
+                      <Container sx={{ display: 'flex', justifyContent: 'center', width: '100%' }} />
+                    </TransitionsModal>
+
+                    
                     <Container
                       sx={{
                         display: 'flex',
+                        flexDirection: 'row-reverse',
+                        alignItems: 'center',
                         justifyContent: 'center',
-                        width: '100%',
+                        marginBottom: '30px',
                       }}
-                    ></Container>
-                  </TransitionsModal>
-                  <Container
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'row-reverse',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: '30px',
-                    }}
-                  >
-                    <Checkbox
-                      defaultChecked={rules ? true : false}
-                      onClick={() => {
-                        setRules((prev) => !prev);
-                        setOpenRulesModal(false);
-                      }}
-                      sx={{ color: 'white' }}
-                    />
-                    <Typography >
-                      אני מאשר\ת את תנאי{' '}
-                      <span className={css['terms']} onClick={() => setOpenRulesModal((prev) => !prev)}>
-                        התקנון
-                      </span>
-                    </Typography>
-                  </Container>
-                  {rules && (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
-                      <ArrowButton disabled={!rules} onClick={onSignupHandler}>
-                        Submit
-                      </ArrowButton>
-                    </div>
-                  )
-                  }
+                    >
+                      <Checkbox
+                        defaultChecked={!!rules}
+                        onClick={() => {
+                          setRules((prev) => !prev);
+                          setOpenRulesModal(false);
+                        }}
+                        sx={{ color: 'white' }}
+                      />
+                      <Typography>
+                        אני מאשר\ת את תנאי{' '}
+                        <span className={css['terms']} onClick={() => setOpenRulesModal((prev) => !prev)}>
+                          התקנון
+                        </span>
+                      </Typography>
+                    </Container>
+
+                    
+                    {rules && (
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
+                        <ArrowButton disabled={!rules} onClick={onSignupHandler}>
+                          Submit
+                        </ArrowButton>
+                      </div>
+                    )}
+                  </Grid>
                 </Grid>
-              </Grid>
-            </Box>
-          </>)}
+              </Box>
+            </>
+          )}
         </div>
       </Container>
     </EntranceAnimation>

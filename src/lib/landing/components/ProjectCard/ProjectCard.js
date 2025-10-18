@@ -18,11 +18,12 @@ import { GitHub as GitHubIcon, Language as LanguageIcon } from '@mui/icons-mater
 const ProjectCard = ({ image_url, title, description, github_url, website_url, language }) => {
   return (
     <Card sx={{ direction: 'rtl' }}>
-      <CardMedia
-        sx={{ borderRadius: '8px', height: 225, objectFit: 'cover' }}
-        image={image_url}
-        title={`${title} image`}
-      />
+  <CardMedia
+    component="img"
+    sx={{ borderRadius: '8px', height: 225, objectFit: 'cover' }}
+    image={image_url || '/logo512.png'}
+    alt={`${title || 'project'} image`}
+  />
       <CardContent>
         <Stack direction={'row'} justifyContent={'space-between'}>
           <Typography gutterBottom variant="h4" component="div" color={'primary'} fontWeight={900}>

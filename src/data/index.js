@@ -1,5 +1,4 @@
-import { emailValidation, idValidation, experienceValidation, numberValidation, selectionValidation, stringValidation } from '../utils';
-
+import { emailValidation, idValidation, experienceValidation, numberValidation, selectionValidation, stringValidation, passwordValidation } from '../utils';
 
 export const labels = [
   {
@@ -23,13 +22,13 @@ export const labels = [
     key: 'id',
     validator: idValidation,
   },
-  // {
-  //   label: "Password",
-  //   type: "TextField",
-  //   showInput: "false",
-  //   key: "password",
-  //   validator: passwordValidation,
-  // },
+  {
+    label: "Password",
+    type: "TextField",
+    showInput: "false",
+    key: "password",
+    validator: passwordValidation,
+  },
   {
     label: 'Phone Number',
     type: 'TextField',
@@ -96,5 +95,5 @@ export const errorMessages = {
   phoneNumber: 'Phone number must contain 10 digits',
   email: 'Email is not valid',
   fullName: 'Must be in English! min 3 characters',
-  // password: "Password must contain atleast 6 chars.",
+  password: "Password must contain atleast 6 chars.",
 };

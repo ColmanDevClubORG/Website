@@ -36,8 +36,9 @@ const SignUpMethod = ({ setMethodClicked, setProfilePic, setEmail, setName, setF
                     fullWidth
                     sx={{ justifyContent: 'space-between' }}
                     onClick={() => handleFacebookSignIn()}
+                    disabled= {true} // to do sort Facebook
                 >
-                    Submit using Facebook
+                    Register with Facebook
                 </Button>
                 <Button
                     variant="outlined"
@@ -46,7 +47,7 @@ const SignUpMethod = ({ setMethodClicked, setProfilePic, setEmail, setName, setF
                     onClick={() => setMethodClicked(true)}
                     endIcon={<EmailRounded />}
                 >
-                    Submit using Email
+                    Register with Email
                 </Button>
             </Stack>
         </Card >

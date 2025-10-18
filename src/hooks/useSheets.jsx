@@ -7,21 +7,36 @@ const fetchDataFromCsv = async () => {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch data from Google Sheets');
+      throw new Error('Failed to fetch data from Google Sheets. status=' + response.status);
     }
 
     const csvData = await response.text();
-    const parsedData = parseCsv(csvData);
-    return parsedData;
-  } catch (error) {}
+   const parsed = parseCsv(csvData);
+   console.log('[useSheets] parsed rows:', parsed.length, parsed.slice(0, 3));
+   return parsed;
+  } catch (error) {
+    console.error('[useSheets] fetch failed:', error);
+   return [];
+  }
 };
 
 const parseCsv = (csvData) => {
-  return csvData.split('\n').map((row) => row.split(/","/));
+  return csvData
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((row) => row.replace(/^"?|"?$/g, '')) 
+    .filter((row) => row.trim() !== '')
+    .map((row) => row.split(/","/).map((cell) => cell.trim()));
 };
 
+
 const useGoogleSheetsData = () => {
-  return useQuery({queryKey:'googleSheetsData',queryFn: fetchDataFromCsv});
+  return useQuery({
+    queryKey: ['googleSheetsData'],
+    queryFn: fetchDataFromCsv,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  });
 };
 
 export default useGoogleSheetsData;
