@@ -9,6 +9,7 @@ import { EntranceAnimation } from 'src/animation';
 import { ArrowButton, TransitionsModal } from 'src/ui';
 import SignUpMethod from './components/SignUpMethod';
 import Avatar from '@mui/material/Avatar';
+import { fetchData } from 'src/hooks/useFirestoreFetch';
 import { useCreateUser } from 'src/hooks/firebase.hooks';
 
 const FIELDS_MAP = {
@@ -27,6 +28,7 @@ const SignUpPage = () => {
   const [profilePic, setProfilePic] = React.useState(null);
   const [email, setEmail] = React.useState('');
   const [name, setName] = React.useState('');
+  const createUser = useCreateUser();
 
   const onSignupHandler = async () => {
     const validationState = labels.reduce((obj, { key, validator }) => {
