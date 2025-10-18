@@ -120,7 +120,7 @@ const SignUpPage = () => {
             letterSpacing: '2px',
           }}
         >
-          <span className={css['text-yellow']}>Submit</span> Application
+          <span className={css['text-yellow']}>User</span> Registration
         </Typography>
 
         
@@ -258,7 +258,7 @@ const SignUpPage = () => {
                           fontWeight: 'bold',
                           marginRight: '1rem',
                         }}
-                        href="https://chat.whatsapp.com/BSs6DSDRUiW8UHe4ZfrABt"
+                        href="https://chat.whatsapp.com/IxoJVBqQtdaL952fxiduju?mode=wwt"
                         target="_blank"
                         rel="noreferrer"
                       >
